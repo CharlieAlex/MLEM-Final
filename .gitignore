@@ -5,3 +5,4 @@
 *.npy
 rawdata/stopwords_zh.txt
 *.json
+.DS_Store
