@@ -52,7 +52,7 @@ class Words_Dataset:
         # pool.join()
 
         # method: 2
-        with Pool(processes=4) as pool:
+        with Pool(processes=8) as pool:
             print()
             for index, result in enumerate(pool.imap(self.get_words_list_aux, self.index_list)):
                 final_list += result
@@ -62,16 +62,23 @@ class Words_Dataset:
 if __name__ == '__main__':
     import datetime
     import os
+    # setting
     os.chdir('/Users/alexlo/Desktop/Project/MLEM_Final/rawdata')
     bbs = 'bda2022_mid_bbs_2019-2021.csv'
-    data_time = (datetime.date(2020,1,1), datetime.date(2021,1,1))
+    news19 = 'bda2022_mid_news_2019.csv'
+    news20 = 'bda2022_mid_news_2020.csv'
+    news21 = 'bda2022_mid_news_2021.csv'
+    data_time = (datetime.date(2019,1,1), datetime.date(2021,12,31))
+    company = '聯電'
+    keywords_list = [company]
 
-    words_dataset = Words_Dataset(data_source=bbs, data_time=data_time)
-    words_dataset.filter_article(keywords=['我'], title_times=1, content_times=1)
+    # get data
+    words_dataset = Words_Dataset(data_source=news21, data_time=data_time)
+    words_dataset.filter_article(keywords=keywords_list, title_times=1, content_times=3)
     words_dataset.get_indexlist_for_multi()
     final_list_ = words_dataset.Pool_get_words_list()
-    print(len(final_list_))
-    print(final_list_[:2])
+    final_list_ = np.array(final_list_)
 
-    # df = words_dataset.article_df.head()
-    # get_words_list(df)
+    # save data
+    os.chdir('/Users/alexlo/Desktop/Project/MLEM_Final/workdata')
+    np.save(company, final_list_ )
