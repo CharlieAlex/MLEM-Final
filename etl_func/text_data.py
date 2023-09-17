@@ -26,7 +26,7 @@ class Words_Dataset:
             .reset_index(drop = True)
         )
 
-    def get_indexlist_for_multi(self, num:int=50)->None:
+    def get_indexlist_for_multi(self:Self, num:int=50)->None:
         num_rows = self.article_df.shape[0]
         start_index_list = [i*num for i in range(int(num_rows / num)+1)]
         end_index_list = [(i+1)*num for i in range(int(num_rows / num))]
@@ -39,11 +39,11 @@ class Words_Dataset:
     def get_targetDF(self:Self, index:list[int])->pd.DataFrame:
         return self.article_df.iloc[index[0]:index[1]].reset_index(drop=True)
 
-    def get_words_list_aux(self, index_list):
+    def get_words_list_aux(self:Self, index_list):
         df = self.get_targetDF(index_list)
         return get_words_list(df)
 
-    def Pool_get_words_list(self)->list[str]:
+    def Pool_get_words_list(self:Self)->list[str]:
         final_list:list[str] = []
         # method: 1
         # pool = ThreadPool(8)
