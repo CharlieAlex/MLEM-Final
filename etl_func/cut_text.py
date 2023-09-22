@@ -1,58 +1,56 @@
-import monpa
-from monpa import utils
-import re
-import numpy as np
 import pandas as pd
+from multiprocessing import Pool
+from typing import Self
+from datetime import datetime
+from functools import cached_property
+import warnings
+warnings.filterwarnings("ignore")
+from .cut_text_aux import sep_all_articles, cut_df_by_num
 
-def remove_nonChinese(sentence:str)->str:
-    return re.sub(r'[^\u4e00-\u9fa5]+', '', sentence)
+class Cut_Machine:
+    def __init__(self:Self, articles_source:str, data_time:tuple[datetime, datetime])->None:
+        self.article_df:pd.DataFrame = pd.read_csv(articles_source)
+        self.article_df['post_time'] = pd.to_datetime(self.article_df['post_time']).dt.date
+        self.start_date, self.end_date = data_time
 
-def remove_numberFirst(word_list:list[str]) -> list[str]:
-    for word in word_list:
-        if word.startswith(('一', '二','三','四','五','六','七','八','九','十')):
-            word_list.remove(word)
-    return word_list
+    def create_filter(self:Self, col_name:str, filter_times:int, keywords:list[str]):
+        '''
+        Filter for the function: filter_article().
+        '''
+        return self.article_df[col_name].str.count('|'.join(keywords)) >= filter_times
 
-def sep_sentence(sentence:str, string_:str)->list[str]:
-    '''
-    Separate a sentence into words and return a list of words.
+    def filter_article(self:Self, keywords:list[str], title_times:int, content_times:int)->None:
+        '''
+        Select articles that contain keywords in title or content at least X times.
+        '''
+        title_filter = self.create_filter('title', title_times, keywords)
+        content_filter = self.create_filter('content', content_times, keywords)
+        return self.article_df[title_filter | content_filter].reset_index(drop = True)
 
-    E.G. 'fdsfsafdf' -> 'fds fsa fdf'
-    '''
-    sentence = remove_nonChinese(sentence)
-    word_list = monpa.cut_batch(sentence)[0]
-    if word_list is not None:
-        word_list = remove_numberFirst(word_list)
-        string_ += ' '.join(word_list) #將切好的字串list用空白隔開變成一整個字串
-    return string_
+    @cached_property
+    def index_list(self:Self)->list[list[int]]:
+        '''
+        Create the index list for multiprocessing.
+        '''
+        return cut_df_by_num(num=50, num_rows=self.article_df.shape[0])
 
-def sep_article(article:str, article_list:list[str])->list[str]:
-    sentence_list = utils.short_sentence(article) #先把一篇文章切成很多句
-    article_in_words = ''
-    for sentence in sentence_list: #再針對每一句切成很多個字
-        article_in_words = sep_sentence(sentence, article_in_words)
-    article_list.append(article_in_words)
-    return article_list
+    def get_targetDF(self:Self, index:list[int])->pd.DataFrame:
+        '''
+        Accroding to the index list, get the filtered dataframe.
+        '''
+        return self.article_df.iloc[index[0]:index[1]].reset_index(drop=True)
 
-def get_words_list(df:pd.DataFrame,)->list[str]:
-    '''
-    Turn the articles dataframe (only content) into an artilces list, and then
+    def sep_all_articles_aux(self:Self, index:list[int]):
+        df = self.get_targetDF(index)
+        return sep_all_articles(df)
 
-    Turn the articles list into another list in which each article is a string of words separated by ' '.
+    def Pool_sep_all_articles(self:Self)->pd.DataFrame:
+        final_df = pd.DataFrame()
+        with Pool(processes=8) as pool:
+            for index, result_df in enumerate(pool.imap(self.sep_all_articles_aux, self.index_list)):
+                final_df = pd.concat([final_df, result_df], ignore_index=True)
+                print('finish', index)
+        return final_df
 
-    E.G. [['sfdsdfs'], ['fsfafasf']] -> [['sfd sdfs'], ['fs fa fa sf']]
-    '''
-    article_list:list[str] = []
-    error_times:int = 0
-    for i in range(0, df.shape[0]): #幾篇文章就要跑幾次
-        try:
-            article = df['content'][i]
-            article_list = sep_article(article, article_list)
-        except:
-            error_times += 1
-            article_list.append('')
-    return article_list
-
-# def save_article_list(self, article_list:np.ndarray[str], index:list[int])->None:
-#     save_name = (self.data_source.split('_')[2] + self.data_source.split('_')[3])[:-4] + '_' + str(index[0])
-#     np.save(save_name, article_list)
+if __name__ == '__main__':
+    print('This is cut_text.py')
