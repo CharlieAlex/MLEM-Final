@@ -9,18 +9,15 @@ from functools import cached_property
 class Words_Matrix:
     def __init__(
             self:Self,
-            all_words:pd.DataFrame,
-            stop_words:list[str],
-            article_df:pd.DataFrame,
+            word_df:pd.DataFrame,
             stock_df:pd.DataFrame,
             data_time:tuple[datetime, datetime],
+            stop_words:list[str],
         ) -> None:
-        self.all_words = all_words
-        self.stop_words = stop_words
-        self.article_df = article_df
+        self.word_df = word_df
         self.stock_df = stock_df
         self.start_date, self.end_date = data_time
-
+        self.stop_words = stop_words
 
     @cached_property
     def tfidf_matrix(self:Self)->pd.DataFrame:
@@ -31,10 +28,10 @@ class Words_Matrix:
         '''
         vectorizer = TfidfVectorizer(stop_words=self.stop_words)
         matrix = pd.DataFrame(
-            data=vectorizer.fit_transform(self.all_words['content']).toarray(),
+            data=vectorizer.fit_transform(self.word_df['content']).toarray(),
             columns=vectorizer.get_feature_names_out(),
             )
-        matrix['Date'] = pd.to_datetime(self.all_words['post_time'], format='%Y-%m-%d').dt.date
+        matrix['Date'] = pd.to_datetime(self.word_df['post_time'], format='%Y-%m-%d').dt.date
         return matrix
 
     @cached_property
@@ -54,22 +51,22 @@ class Words_Matrix:
     def Y_matrix(self:Self)->pd.DataFrame:
         return self.XY_matrix['Label']
 
-    def feature_X_byChi2(self, k):
-        '''Find the k best features by Chi2 test.
+def feature_X_byChi2(X:pd.DataFrame, Y:pd.DataFrame, k):
+    '''Find the k best features by Chi2 test.
 
-        Args:
-            k (int): The number of features to select.
+    Args:
+        k (int): The number of features to select.
 
-        Output:
-            filtered X matrix
-        '''
-        selected_label:np.ndarray[bool] = (
-            SelectKBest(chi2, k=k)
-            .fit(self.X_matrix, self.Y_matrix)
-            .get_support()
-            )
-        k_features:list[str] = self.X_matrix.columns[selected_label]
-        return self.X_matrix[k_features]
+    Output:
+        filtered X matrix
+    '''
+    selected_label:np.ndarray[bool] = (
+        SelectKBest(chi2, k=k)
+        .fit(X, Y)
+        .get_support()
+        )
+    k_features:list[str] = X.columns[selected_label]
+    return X[k_features]
 
 if __name__ == '__main__':
     pass

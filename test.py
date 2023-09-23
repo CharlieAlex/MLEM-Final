@@ -16,11 +16,11 @@ print('finish loading article')
 
 workdata_path = '/Users/alexlo/Desktop/Project/MLEM_Final/workdata'
 os.chdir(workdata_path)
-all_words = np.load('聯電.npy').tolist()
+word_df = np.load('聯電.npy').tolist()
 stock_df = pd.read_parquet('聯電.parquet').astype({'Date':'datetime64[ns]'})
 stock_df = transform_stock_df(stock_df, D=2, cutoff=3)
 print('finish loading stock')
 
 data_time = tuple([date(2019,1,1), date(2021,12,31)])
-words_matrix = Words_Matrix(all_words, stop_words, article_df, stock_df, data_time)
+words_matrix = Words_Matrix(word_df, stop_words, article_df, stock_df, data_time)
 print(words_matrix.main_df)

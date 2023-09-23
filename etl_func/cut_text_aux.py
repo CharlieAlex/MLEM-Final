@@ -1,9 +1,11 @@
 # This file is for the class 'Words_Dataset', which contains functions that cut the text into words.
 
-import monpa
-from monpa import utils
 import re
 import pandas as pd
+import contextlib # for silencing the monpa hello message
+with contextlib.redirect_stdout(None):
+    import monpa
+    from monpa import utils
 
 def remove_nonChinese(sentence:str)->str:
     return re.sub(r'[^\u4e00-\u9fa5]+', '', sentence)

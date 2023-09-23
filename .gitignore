@@ -1,4 +1,5 @@
 Dockerfile
+workdata/
 rawdata/
 *.csv
 *.xlsx
@@ -6,7 +7,7 @@ rawdata/
 *.npy
 rawdata/stopwords_zh.txt
 *.json
-.DS_Store
+*.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

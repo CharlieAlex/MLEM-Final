@@ -25,7 +25,7 @@ class Cut_Machine:
         '''
         title_filter = self.create_filter('title', title_times, keywords)
         content_filter = self.create_filter('content', content_times, keywords)
-        return self.article_df[title_filter | content_filter].reset_index(drop = True)
+        self.article_df = self.article_df[title_filter | content_filter].reset_index(drop = True)
 
     @cached_property
     def index_list(self:Self)->list[list[int]]:
@@ -45,12 +45,12 @@ class Cut_Machine:
         return sep_all_articles(df)
 
     def Pool_sep_all_articles(self:Self)->pd.DataFrame:
-        final_df = pd.DataFrame()
+        word_df = pd.DataFrame()
         with Pool(processes=8) as pool:
             for index, result_df in enumerate(pool.imap(self.sep_all_articles_aux, self.index_list)):
-                final_df = pd.concat([final_df, result_df], ignore_index=True)
-                print('finish', index)
-        return final_df
+                word_df = pd.concat([word_df, result_df], ignore_index=True)
+        word_df['post_time'] = word_df['post_time'].astype('string') #for saving to parquet
+        return word_df
 
 if __name__ == '__main__':
     print('This is cut_text.py')
