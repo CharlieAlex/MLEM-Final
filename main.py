@@ -6,7 +6,7 @@ def step1_get_stock():
     os.chdir(rawdata_path)
     stock_code = '2303'
     stock_df = extract_stock_df(stock_code)
-    
+
     os.chdir(workdata_path)
     stock_df.to_parquet(stock_code + '_stock_df.parquet', index=False)
 
@@ -54,7 +54,7 @@ def step3_get_XY():
     rawdata_path = '/Users/alexlo/Desktop/Project/MLEM_Final/rawdata'
     workdata_path = '/Users/alexlo/Desktop/Project/MLEM_Final/workdata'
     data_time = tuple([date(2019,1,1), date(2021,12,31)])
-    day_arg = 2 
+    day_arg = 2
     cutoff_arg = 0.03
     company = '聯電'
     stock_code = '2303'
@@ -102,8 +102,12 @@ if __name__ == '__main__':
     # X, Y = step3_get_XY()
     # step4_train_test(X, Y)
 
-    from df_func.train import train_lag_cutoff
+    from df_func.train import train_lag_cutoff, create_train_function
     import pandas as pd
-    results = train_lag_cutoff(lag_list=[2,3], cut_list=[0, 0.01])
+    # results = train_lag_cutoff(lag_list=[2,3], cut_list=[0, 0.01])
+
+    k_list = [500, 1000, 2000]
+    train_k_feature = create_train_function('features_num')
+    results = train_k_feature(k_list)
     df = pd.DataFrame(results)
     df.to_csv('測試.csv', index=False)
