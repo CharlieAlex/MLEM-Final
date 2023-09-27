@@ -51,7 +51,7 @@ class Words_Matrix:
     def Y_matrix(self:Self)->pd.DataFrame:
         return self.XY_matrix['Label']
 
-def feature_X_byChi2(X:pd.DataFrame, Y:pd.DataFrame, k):
+def feature_X_byChi2(X:pd.DataFrame, Y:pd.DataFrame, k)->list[str]:
     '''Find the k best features by Chi2 test.
 
     Args:
@@ -66,7 +66,7 @@ def feature_X_byChi2(X:pd.DataFrame, Y:pd.DataFrame, k):
         .get_support()
         )
     k_features:list[str] = X.columns[selected_label]
-    return X[k_features]
+    return k_features
 
 if __name__ == '__main__':
     pass

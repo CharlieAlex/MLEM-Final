@@ -80,31 +80,5 @@ def train_lag_cutoff(lag_list:list[int], cut_list:list[float])->dict():
                 )
     return all_results
 
-# def train_k_feature(k_features_list:list[int])->dict():
-#     '''用多少個關鍵字作為特徵
-#     '''
-#     from args import (
-#         stock_df, word_df, data_time, stop_words,
-#         classifier_dict, day_arg, cutoff_arg
-#     )
-
-#     all_results = dict()
-#     for k_features in tqdm(k_features_list):
-#         words_matrix = Words_Matrix(
-#             word_df=word_df,
-#             stock_df=transform_stock_df(stock_df, D=day_arg, cutoff=cutoff_arg),
-#             data_time=data_time,
-#             stop_words=stop_words
-#             )
-#         X, Y = words_matrix.X_matrix, words_matrix.Y_matrix
-#         X = feature_X_byChi2(X, Y, k=k_features)
-
-#         print("資料中漲跌的比例: \n", Y.value_counts())
-
-#         all_results[f'k{k_features}'] = (
-#             train(classifier_dict_=classifier_dict, X_=X, Y_=Y, cv_=5)
-#             )
-#     return all_results
-
 if __name__ == '__main__':
     pass
