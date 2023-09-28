@@ -1,15 +1,3 @@
-def step1_get_stock():
-    from etl_func.etl_data import extract_stock_df
-    import os
-    rawdata_path = '/Users/alexlo/Desktop/Project/MLEM_Final/rawdata'
-    workdata_path = '/Users/alexlo/Desktop/Project/MLEM_Final/workdata'
-    os.chdir(rawdata_path)
-    stock_code = '2303'
-    stock_df = extract_stock_df(stock_code)
-
-    os.chdir(workdata_path)
-    stock_df.to_parquet(stock_code + '_stock_df.parquet', index=False)
-
 def step2_get_data():
     from etl_func.cut_text import Cut_Machine
     import pandas as pd

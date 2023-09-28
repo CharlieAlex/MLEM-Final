@@ -13,10 +13,18 @@ from etl_func.etl_data import read_stop_words
 
 rawdata_path:str = '/Users/alexlo/Desktop/Project/MLEM_Final/rawdata'
 workdata_path:str = '/Users/alexlo/Desktop/Project/MLEM_Final/workdata'
+datafile_name:dict[str, str] = {
+    'bbs': 'bda2022_mid_bbs_2019-2021.csv',
+    'news2019': 'bda2022_mid_news_2019.csv',
+    'news2020': 'bda2022_mid_news_2020.csv',
+    'news2021': 'bda2022_mid_news_2021.csv',
+}
 
 os.chdir(workdata_path)
 company:str = '聯電'
 stock_code:str = '2303'
+kw_title_num = 1
+kw_content_num = 2
 day_arg:int = 2
 cutoff_arg:int  = 0.03
 features_num:int  = 2000
