@@ -15,4 +15,4 @@ test: $(VENV)/bin/activate
 
 clean:
 	rm -rf __pycache__
-	rm -rf venv;
+	rm -rf $(VENV);
