@@ -4,7 +4,6 @@ from etl_func.etl_data import transform_stock_df
 from sklearn.model_selection import cross_val_score
 import pandas as pd
 from typing import Callable
-
 train_function = Callable[[list], dict]
 
 def train(
@@ -41,7 +40,7 @@ def create_train_function(arg_name)->train_function:
                 stop_words=args.stop_words
                 )
             X, Y = words_matrix.X_matrix, words_matrix.Y_matrix
-            X = feature_X_byChi2(X, Y, k=args.features_num)
+            X = X[ feature_X_byChi2(X, Y, k=args.features_num) ]
 
             print("資料中漲跌的比例: \n", Y.value_counts())
 

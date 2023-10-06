@@ -1,5 +1,3 @@
-# This file is for the class 'Words_Dataset', which contains functions that cut the text into words.
-
 import re
 import pandas as pd
 import contextlib # for silencing the monpa hello message

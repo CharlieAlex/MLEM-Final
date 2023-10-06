@@ -40,36 +40,10 @@ def read_stop_words()->list[str]:
         stop_words = file.read().splitlines()
     return stop_words
 
-# def transform_article_df(
-#         article_df:pd.DataFrame,
-#         kw:list[str],
-#         kw_title_num:int,
-#         kw_content_num:int) -> pd.DataFrame:
-#     criteria1 = (article_df['title'].str.count('|'.join(kw)) >= kw_title_num)
-#     criteria2 = (article_df['content'].str.count('|'.join(kw)) >= kw_content_num)
-#     article_df = (
-#         article_df[(criteria1) | (criteria2)]
-#         .rename(columns={'post_time':'Post_Time', 'title':'Title', 'content':'Content'})
-#         .reset_index(drop = True)
-#     )
-#     article_df['Post_Time'] = pd.to_datetime(article_df['Post_Time']).dt.date
-#     return article_df[['Title', 'Content', 'Post_Time']]
-
 if __name__ == '__main__':
-    pass
     import os
-
     workdata_path = '/Users/alexlo/Desktop/Project/MLEM_Final/workdata'
     os.chdir(workdata_path)
     stock_df = pd.read_parquet('聯電.parquet').astype({'Date':'datetime64[ns]'})
     stock_df = transform_stock_df(stock_df, D=2, cutoff=3)
     print(stock_df.head())
-
-    # rawdata_path = '/Users/alexlo/Desktop/Project/MLEM_Final/rawdata'
-    # os.chdir(rawdata_path)
-    # article_df = pd.read_csv('bda2022_mid_bbs_2019-2021.csv')
-    # keywords = ['聯電']
-    # keywords_times_titles = 1
-    # keywords_times_content = 2
-    # article_df = transform_article_df(article_df, keywords, keywords_times_titles, keywords_times_content)
-    # print(article_df.head())

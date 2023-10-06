@@ -1,11 +1,6 @@
 import pandas as pd
+import datetime
 from df_func.make_XY import Words_Matrix, feature_X_byChi2
-from etl_func.etl_data import transform_stock_df
-from args import (
-    stock_df, word_df, data_time, stop_words,
-    features_num, classifier_dict,
-    day_arg, cutoff_arg
-)
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 
@@ -65,48 +60,48 @@ class Predict_Machine:
         return accuracy_score(self.YY_hat['Label'], self.YY_hat['Label_hat'])
 
     def show_confusion(self):
-        return confusion_matrix(self.YY_hat['Label'], self.YY_hat['Label_hat'])
+        return pd.DataFrame(
+            confusion_matrix(self.YY_hat['Label'], self.YY_hat['Label_hat']),
+            index=['Positive', 'Negative'],
+            columns=['True', 'False'],
+            )
+
+class Date_Machine:
+    def __init__(self, train_duration, test_duration, data_time) -> None:
+        self.train_duration:int = train_duration
+        self.test_duration:int = test_duration
+        self.start_date:datetime.date = data_time[0]
+        self.end_date:datetime.date = data_time[1]
+        self.index = 0
+
+    @property
+    def date_df(self)->pd.DataFrame:
+        df = pd.DataFrame()
+        date_range = pd.date_range(start=self.start_date, end=self.end_date, freq='MS')
+        df['Start_Date'] = date_range
+        df['End_Date'] = date_range + pd.offsets.MonthEnd()
+        df['Index'] = df.index + 1
+        return df
+
+    def get_start_date(self, index:int):
+        return self.date_df['Start_Date'].iloc[index].date()
+
+    def get_end_date(self, index:int):
+        return self.date_df['End_Date'].iloc[index].date()
+
+    @property
+    def train_date(self):
+        return tuple([
+            self.get_start_date(self.index),
+            self.get_end_date(self.index+self.train_duration-1),
+        ])
+
+    @property
+    def test_date(self):
+        return tuple([
+            self.get_start_date(self.index+self.train_duration),
+            self.get_end_date(self.index+self.train_duration+self.test_duration-1),
+        ])
 
 if '__name__' == '__main__':
     pass
-
-# def compute_mon_day(i):
-#     i = i + 1
-#     if i < 9:
-#         test_mon = i + 3
-#     elif i == 9:
-#         test_mon = 12
-#     else:
-#         test_mon = i - 9
-
-#     train_mon_start = i
-#     if train_mon_start > 12:
-#         train_mon_start = train_mon_start - 12
-#     train_mon_end = train_mon_start + 2
-#     if train_mon_end > 12:
-#          train_mon_end = train_mon_end - 12
-
-#     train_day = compute_day(train_mon_end)
-#     test_day = compute_day(test_mon)
-#     return train_mon_start, train_mon_end, test_mon, train_day, test_day
-
-
-# ### 計算日期函數 3：我知道這三個寫很爛，反省中...
-# def compute_year(i):
-#     i = i + 1
-#     train_year_start = 2020
-#     train_year_end = 2020
-#     test_year_start = 2020
-#     test_year_end = 2020
-
-#     if i >= 10:
-#         test_year_start = 2021
-#         test_year_end = 2021
-
-#     if i in [11, 12]:
-#         train_year_start = 2020
-#         train_year_end = 2021
-#     elif i >= 13:
-#         train_year_start = 2021
-#         train_year_end = 2021
-#     return train_year_start, train_year_end, test_year_start, test_year_end
