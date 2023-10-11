@@ -69,4 +69,36 @@ def feature_X_byChi2(X:pd.DataFrame, Y:pd.DataFrame, k)->list[str]:
     return k_features
 
 if __name__ == '__main__':
-    pass
+    import os
+    from args import (
+        rawdata_path, workdata_path,
+        company, stock_code, data_time,
+        day_arg, cutoff_arg, features_num,
+        )
+    from df_func.make_XY import Words_Matrix, feature_X_byChi2
+    from etl_func.etl_data import transform_stock_df, read_stop_words
+    from sklearn.model_selection import cross_val_score
+    from args import classifier_dict
+
+    # Get X, Y for classification
+    os.chdir(rawdata_path)
+    stop_words = read_stop_words()
+
+    os.chdir(workdata_path)
+    word_df = pd.read_parquet(company + '_word_df.parquet')
+    stock_df = pd.read_parquet(stock_code + '_stock_df.parquet')
+    stock_df = transform_stock_df(stock_df, D=day_arg, cutoff=cutoff_arg)
+
+    words_matrix = Words_Matrix(word_df, stock_df, data_time, stop_words)
+    X, Y = words_matrix.X_matrix, words_matrix.Y_matrix
+    X = X[ feature_X_byChi2(X, Y, k=features_num) ]
+
+    print('漲跌比例:\n', Y.value_counts(), end='\n\n')
+    print('文字矩陣大小:\n', X.shape)
+
+    # Try classification
+    for classifier in classifier_dict:
+        clf = classifier_dict[classifier]()
+        scores = cross_val_score(clf, X , Y, cv = 5)
+        print(classifier, ':', round(scores.mean(), 3))
+        print(scores)

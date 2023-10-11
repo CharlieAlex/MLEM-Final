@@ -12,11 +12,11 @@ warnings.filterwarnings('ignore')
 
 # 可變參數
 dir_path:str = '/Users/alexlo/Desktop/Project/MLEM_Final/'         # 檔案路徑
-company:str = '聯發科'          # 公司名稱
-stock_code:str = '2454'      # 股票代碼
+company:str = '台積電'          # 公司名稱
+stock_code:str = '2330'      # 股票代碼
 kw_list = [company, ]        # 關鍵字搜尋清單（通常一定會放公司名稱）
 kw_title_num = 1             # 關鍵字搜尋標題數量
-kw_content_num = 2           # 關鍵字搜尋內文數量
+kw_content_num = 3           # 關鍵字搜尋內文數量
 day_arg:int = 2              # 跟幾天前的股價相比
 cutoff_arg:int  = 0.03       # 跌漲幅度門檻(e.g. 0.03 代表跌漲幅度超過 3% 才算跌或漲)
 features_num:int  = 2000     # 選取幾個關鍵詞作為預測
@@ -45,9 +45,12 @@ classifier_dict:dict = { # 演算法
 data_time:tuple = tuple([date(2019,1,1), date(2021,12,31)])
 os.chdir(rawdata_path)
 stop_words:list[str] = read_stop_words()
-os.chdir(workdata_path)
-# word_df:pd.DataFrame = pd.read_parquet(company + '_word_df.parquet')
-# stock_df:pd.DataFrame = pd.read_parquet(stock_code + '_stock_df.parquet')
+try:
+    os.chdir(workdata_path)
+    word_df:pd.DataFrame = pd.read_parquet(company + '_word_df.parquet')
+    stock_df:pd.DataFrame = pd.read_parquet(stock_code + '_stock_df.parquet')
+except:
+    print('No word_df or stock_df')
 
 ##########################################################################################
 args_dict:dict = {
@@ -60,10 +63,16 @@ args_dict:dict = {
     'stock_code': stock_code,
     'features_num': features_num,
     'classifier_dict': classifier_dict,
-    # 'word_df': word_df,
-    # 'stock_df': stock_df,
     'stop_words': stop_words,
 }
+try:
+    args_dict.update({
+        'word_df': word_df,
+        'stock_df': stock_df,
+    })
+except:
+    print('No word_df or stock_df')
+
 class args_class:
     def __init__(self, args:dict):
         for arg in args:

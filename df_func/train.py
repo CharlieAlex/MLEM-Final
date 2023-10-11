@@ -3,6 +3,7 @@ from df_func.make_XY import Words_Matrix, feature_X_byChi2
 from etl_func.etl_data import transform_stock_df
 from sklearn.model_selection import cross_val_score
 import pandas as pd
+import numpy as np
 from typing import Callable
 train_function = Callable[[list], dict]
 
@@ -11,14 +12,11 @@ def train(
         X_:pd.DataFrame,
         Y_:pd.DataFrame,
         cv_:int)->dict():
-
     scores_dict = dict()
     for classifier in classifier_dict_:
         try:
             clf = classifier_dict_[classifier]()
             scores = cross_val_score(estimator=clf, X=X_ , y=Y_, cv=cv_)
-            print(classifier, ':', round(scores.mean(), 3))
-            print(scores)
             scores_dict[classifier] = scores
         except:
             print('there is an error when traning', classifier)
@@ -28,7 +26,7 @@ def create_train_function(arg_name)->train_function:
     def train_function(arg_list:list)->dict():
         from args import args_dict, args_class
         all_results = dict()
-        for value_ in (arg_list):
+        for value_ in tqdm(arg_list):
             args_dict[arg_name] = value_
             args = args_class(args_dict)
             words_matrix = Words_Matrix(
@@ -42,7 +40,7 @@ def create_train_function(arg_name)->train_function:
             X, Y = words_matrix.X_matrix, words_matrix.Y_matrix
             X = X[ feature_X_byChi2(X, Y, k=args.features_num) ]
 
-            print("資料中漲跌的比例: \n", Y.value_counts())
+            print(Y.value_counts().to_frame().T, end='\n\n')
 
             all_results[f'{value_}'] = (
                 train(classifier_dict_=args.classifier_dict, X_=X, Y_=Y, cv_=5)
@@ -78,6 +76,18 @@ def train_lag_cutoff(lag_list:list[int], cut_list:list[float])->dict():
                 train(classifier_dict_=classifier_dict, X_=X, Y_=Y, cv_=5)
                 )
     return all_results
+
+def plot_arg_train(file: str):
+    from args import classifier_dict
+    dft = (pd
+        .DataFrame( np.load(file, allow_pickle=True) )
+        .set_index(0)
+        .transpose()
+        .rename_axis('algorithm')
+        .map(lambda x: x.mean())
+    )
+    dft.index = classifier_dict.keys()
+    dft.transpose().plot(kind='line', marker='o', xlabel=file.split('_')[0], ylabel='accuracy', figsize=(10, 4))
 
 if __name__ == '__main__':
     pass
