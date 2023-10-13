@@ -22,30 +22,29 @@ def train(
             print('there is an error when traning', classifier)
     return scores_dict
 
-def create_train_function(arg_name)->train_function:
+def create_train_function(arg_name:str, sample_num:int=20000)->train_function:
     def train_function(arg_list:list)->dict():
         from args import args_dict, args_class
         all_results = dict()
+        tf_ratios = pd.DataFrame()
         for value_ in tqdm(arg_list):
             args_dict[arg_name] = value_
             args = args_class(args_dict)
             words_matrix = Words_Matrix(
-                word_df=args.word_df,
-                stock_df=transform_stock_df(
-                    args.stock_df, D=args.day_arg, cutoff=args.cutoff_arg
-                    ),
+                word_df=args.word_df.sample(n=sample_num, random_state=42),
+                stock_df=transform_stock_df(args.stock_df, args.day_arg, args.cutoff_arg),
                 data_time=args.data_time,
                 stop_words=args.stop_words
                 )
             X, Y = words_matrix.X_matrix, words_matrix.Y_matrix
             X = X[ feature_X_byChi2(X, Y, k=args.features_num) ]
 
-            print(Y.value_counts().to_frame().T, end='\n\n')
-
-            all_results[f'{value_}'] = (
-                train(classifier_dict_=args.classifier_dict, X_=X, Y_=Y, cv_=5)
-                )
-        return all_results
+            tf_ratios = pd.concat([
+                tf_ratios,
+                Y.value_counts().to_frame().T.set_axis([value_])
+                ])
+            all_results[f'{value_}'] = train(classifier_dict_=args.classifier_dict, X_=X, Y_=Y, cv_=5)
+        return all_results, tf_ratios
     return train_function
 
 def train_lag_cutoff(lag_list:list[int], cut_list:list[float])->dict():
@@ -77,17 +76,23 @@ def train_lag_cutoff(lag_list:list[int], cut_list:list[float])->dict():
                 )
     return all_results
 
-def plot_arg_train(file: str):
-    from args import classifier_dict
-    dft = (pd
+def plot_arg_train(file: str, x_labels: list):
+    score_df = (pd
         .DataFrame( np.load(file, allow_pickle=True) )
         .set_index(0)
-        .transpose()
         .rename_axis('algorithm')
         .map(lambda x: x.mean())
+        .set_axis(x_labels, axis=1)
+        .transpose()
+        )
+    return (score_df
+        .plot(
+            kind='line', marker='o', figsize=(10, 4),
+            xlabel=file.split('_')[0], ylabel='accuracy',
+            )
+        .get_figure()
+        .set_dpi(200)
     )
-    dft.index = classifier_dict.keys()
-    dft.transpose().plot(kind='line', marker='o', xlabel=file.split('_')[0], ylabel='accuracy', figsize=(10, 4))
 
 if __name__ == '__main__':
     pass
